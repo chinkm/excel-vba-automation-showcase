@@ -1,1 +1,304 @@
+Option Explicit
+
+Private Sub cmdEdit_Click()
+Dim rowA, rowB, brow, Crow As Long
+Dim r, s, t As Long
+Dim Drow
+Dim FinDup
+Dim ws As Worksheet
+Application.ScreenUpdating = False
+Set ws = Worksheets("CashSalesBill")
+rowA = Range("A1048576").End(xlUp).Row
+With ws.Range("B3", Cells(rowA, "B"))
+Set FinDup = .Find(what:=ActiveCell.Value, after:=Range("B3"), _
+LookIn:=xlValues, Lookat:=xlWhole, searchorder:=xlByRows, _
+searchdirection:=xlNext, MatchCase:=False)
+If Not FinDup Is Nothing Then
+ActiveCell.Offset(0, -1) = txtDate.Value
+ActiveCell.NumberFormat = "dd/mm/yyyy;@"
+ActiveCell.Value = lbBillNoSeq.Caption
+ActiveCell.NumberFormat = "General"
+ActiveCell.EntireColumn.AutoFit
+ActiveCell.Offset(0, 1) = txtDescription.Value
+ActiveCell.Offset(0, 1).EntireColumn.AutoFit
+ActiveCell.Offset(0, 2) = txtAmount.Value
+ActiveCell.Offset(0, 2).NumberFormat = "_(* #,##0.00_);_(* (#,##0.00);_(* ""-""??_);_(@_)"
+ActiveCell.Offset(0, 2).EntireColumn.AutoFit
+ActiveCell.Offset(0, 3).EntireRow.AutoFit
+ActiveCell.Offset(0, 3).EntireColumn.AutoFit
+End If
+t = 0 '------ Added
+If ActiveCell.Offset(t, 4).Value <> ActiveCell.Offset((t - 1), 4).Value Then '------ Added
+ActiveCell.Offset(0, 3).Value = txtAmount.Value
+s = 1
+Do
+ActiveCell.Offset(s, 3).Value = ActiveCell.Offset(s, 2) + ActiveCell.Offset(s - 1, 3)
+'r = r + 1
+s = s + 1
+Loop Until ActiveCell.Offset(s, 4).Value <> ActiveCell.Offset((s - 1), 4).Value
+Else
+r = 0
+s = 1
+Do
+ActiveCell.Offset(r, 3).Value = ActiveCell.Offset(r, 2) + ActiveCell.Offset(s - 2, 3)
+r = r + 1
+s = s + 1
+Loop Until ActiveCell.Offset(r, 4).Value <> ActiveCell.Offset((r - 1), 4).Value
+End If
+End With
+ws.Range("A1048576").End(xlUp).Select
+brow = ActiveCell.Row
+ws.Range("B1048576").End(xlUp).Select
+Crow = ActiveCell.Row
+With ActiveWorkbook.Worksheets(ActiveSheet.Name).Sort
+.SortFields.Clear
+.SortFields.Add Key:=Range("B3", Cells(brow, "B")), _
+    SortOn:=xlSortOnValues, Order:=xlAscending, DataOption:=xlSortNormal
+.SortFields.Add Key:=Range("A3", Cells(Crow, "A")), _
+    SortOn:=xlSortOnValues, Order:=xlAscending, DataOption:=xlSortNormal
+.SetRange Range("A2", Cells(Crow, "D"))
+.Header = xlYes
+.MatchCase = False
+.Orientation = xlTopToBottom
+.SortMethod = xlPinYin
+.Apply
+End With
+Set Drow = ws.Range("D3", Cells(Crow, "D"))
+ws.Range("C" & (Crow + 1)) = "Total Cash Sales"
+ws.Range("D" & (Crow + 1)) = Application.WorksheetFunction.Sum(Drow)
+ws.Range("D" & (Crow + 1)).NumberFormat = "_(* #,##0.00_);_(* (#,##0.00);_(* ""-""??_);_(@_)"
+Call UserForm_Initialize
+rowB = ws.Range("A1048576").End(xlUp).Row
+ws.Range("A" & rowB).Select
+Application.ScreenUpdating = True
+Set ws = Nothing
+ActiveWorkbook.Save
+cmdPosting.Enabled = True
+Unload Me
+End Sub
+
+Private Sub cmdPosting_Click()
+Dim rowA, rowB, brow, Crow, Drow
+Dim ws As Worksheet
+Application.ScreenUpdating = False
+Set ws = Worksheets("CashSalesBill")
+ws.Range("A2").Select
+Do  '---(1)
+If IsEmpty(ActiveCell) = False Then     ' --- (2)
+ActiveCell.Offset(1, 0).Select
+End If  ' --- (-2)
+Loop Until IsEmpty(ActiveCell) = True   ' ---(-1)
+If txtDate.Value = "" Or txtDate.Value < #1/1/2019# Or Not IsDate(txtDate.Value) Then '--- (3)
+MsgBox "Invalid date, Please re-enter again", Title:="Invalid Date"
+Exit Sub
+Else
+rowA = Range("A1048576").End(xlUp).Row
+ActiveCell.Value = txtDate.Value
+ActiveCell.NumberFormat = "dd/mm/yyyy;@"
+ActiveCell.Offset(0, 1) = lbBillNoSeq.Caption
+ActiveCell.Offset(0, 1).EntireColumn.AutoFit
+ActiveCell.Offset(0, 5) = DatePart("yyyy", txtDate) & DatePart("m", txtDate)
+ActiveCell.Offset(0, 2) = txtDescription.Value
+ActiveCell.Offset(0, 2).EntireColumn.AutoFit
+ActiveCell.Offset(0, 3) = txtAmount.Value
+ActiveCell.Offset(0, 3).NumberFormat = "_(* #,##0.00_);_(* (#,##0.00);_(* ""-""??_);_(@_)"
+ActiveCell.Offset(0, 3).EntireColumn.AutoFit
+ActiveCell.Offset(0, 3).EntireRow.AutoFit
+ActiveCell.Offset(0, 4).Value = Application.WorksheetFunction.SumIf(Range("F" & 3, "F" & rowA + 1), Range("F" & rowA + 1), Range("D" & 3, "D" & rowA + 1))
+ActiveCell.Offset(0, 4).NumberFormat = "_(* #,##0.00_);_(* (#,##0.00);_(* ""-""??_);_(@_)"
+ActiveCell.Offset(0, 4).EntireColumn.AutoFit
+ActiveCell.Offset(0, 4).EntireRow.AutoFit
+End If  '---------- (-5)
+'----- Applying Sort
+ws.Range("A3").Select
+ws.Range("A1048576").End(xlUp).Select
+brow = ActiveCell.Row
+ws.Range("B1048576").End(xlUp).Select
+Crow = ActiveCell.Row
+With ActiveWorkbook.Worksheets(ActiveSheet.Name).Sort
+.SortFields.Clear
+.SortFields.Add Key:=Range("B3", Cells(brow, "B")), _
+    SortOn:=xlSortOnValues, Order:=xlAscending, DataOption:=xlSortNormal
+.SortFields.Add Key:=Range("A3", Cells(Crow, "A")), _
+    SortOn:=xlSortOnValues, Order:=xlAscending, DataOption:=xlSortNormal
+.SetRange Range("A2", Cells(Crow, "F"))
+.Header = xlYes
+.MatchCase = False
+.Orientation = xlTopToBottom
+.SortMethod = xlPinYin
+.Apply
+End With
+Set Drow = ws.Range("D3", Cells(Crow, "D"))
+ws.Range("C" & (Crow + 1)) = "Total Cash Sales"
+ws.Range("D" & (Crow + 1)) = Application.WorksheetFunction.Sum(Drow)
+ws.Range("D" & (Crow + 1)).NumberFormat = "_(* #,##0.00_);_(* (#,##0.00);_(* ""-""??_);_(@_)"
+Call UserForm_Initialize
+Application.ScreenUpdating = True
+Set Drow = Nothing
+Set ws = Nothing
+On Error Resume Next
+txtDate.SetFocus
+ActiveWorkbook.Save
+End Sub
+
+Private Sub cmdSearch_Click()
+Dim Arow As Long
+Dim rng As Range
+Dim findstring As Variant
+Application.ScreenUpdating = False
+On Error Resume Next
+Arow = Range("A1048576").End(xlUp).Row
+Range("A3").Select
+findstring = InputBox("Enter Cash Bill No: to search", "Search Invoice")
+If CStr(findstring) = "" Then
+Exit Sub
+End If
+If findstring <> "" Then
+With Range("B3:B" & Arow)
+Set rng = .Find(what:=findstring, after:=Range("B3"), _
+LookIn:=xlValues, Lookat:=xlWhole, searchorder:=xlByRows, _
+searchdirection:=xlNext, MatchCase:=False)
+If Not rng Is Nothing Then
+Application.GoTo rng, False
+Application.Wait (Now + TimeValue("0:00:01"))
+Else
+MsgBox "No Match Found"
+Exit Sub
+End If
+End With
+End If
+txtDate.Value = ActiveCell.Offset(0, -1)
+lbBillNoSeq.Caption = ActiveCell.Value
+txtDescription.Value = ActiveCell.Offset(0, 1)
+txtAmount.Value = ActiveCell.Offset(0, 2)
+Application.ScreenUpdating = True
+ActiveWorkbook.Save
+cmdPosting.Enabled = False
+cmdEdit.Enabled = True
+End Sub
+
+Private Sub txtDate_AfterUpdate()
+Dim seqnum As Variant
+Dim fndCashBilDate, fndCashBilNo
+Dim rowF As Long
+Dim freeaddress
+Dim ws As Worksheet
+seqnum = 2
+If txtDate.Value = "" Or txtDate.Value < #1/1/2019# Or Not IsDate(txtDate.Value) Then '--- (3)
+MsgBox "Invalid date, Please re-enter again", Title:="Invalid Date"
+txtDate.SetFocus
+Exit Sub
+End If
+rowF = Range("F1048576").End(xlUp).Row
+
+Set ws = Worksheets("CashSalesBill")
+With Range("F3:F" & rowF)
+Set fndCashBilDate = .Find(what:=DatePart("yyyy", txtDate) & DatePart("m", txtDate), after:=ws.Range("F3"), _
+LookIn:=xlValues, searchorder:=xlByRows, searchdirection:=xlNext, _
+MatchCase:=False)
+If fndCashBilDate Is Nothing Then
+If Len(DatePart("m", txtDate.Value)) = 1 Then
+lbBillNoSeq.Caption = "CB" & DatePart("yyyy", txtDate.Value) _
+& "0" & DatePart("m", txtDate.Value) & "-001"
+Else
+lbBillNoSeq.Caption = "CB" & DatePart("yyyy", txtDate.Value) _
+& DatePart("m", txtDate.Value) & "-001"
+End If
+Set fndCashBilDate = Nothing
+Set ws = Nothing
+Exit Sub
+End If
+End With
+With Range("F3:F" & rowF)
+Set fndCashBilNo = .Find(what:=DatePart("yyyy", txtDate) & DatePart("m", txtDate), after:=ws.Range("F3"), _
+LookIn:=xlValues, searchorder:=xlByRows, searchdirection:=xlNext, _
+MatchCase:=False)
+If Not fndCashBilNo Is Nothing Then
+freeaddress = fndCashBilNo.Address
+Do
+Set fndCashBilNo = .FindNext(fndCashBilNo)
+If Not fndCashBilNo.Address = freeaddress Then
+seqnum = seqnum + 1
+End If
+Loop While Not fndCashBilNo Is Nothing And fndCashBilNo.Address <> freeaddress
+Set fndCashBilNo = Nothing
+Set ws = Nothing
+End If
+End With
+If Len(seqnum) = 1 Then
+If Len(DatePart("m", txtDate.Value)) = 1 Then
+lbBillNoSeq.Caption = "CB" & DatePart("yyyy", txtDate.Value) _
+& "0" & DatePart("m", txtDate.Value) & "-00" & seqnum
+Else
+lbBillNoSeq.Caption = "CB" & DatePart("yyyy", txtDate.Value) _
+& DatePart("m", txtDate.Value) & "-00" & seqnum
+End If
+ElseIf Len(seqnum) = 2 Then
+If Len(DatePart("m", txtDate.Value)) = 1 Then
+lbBillNoSeq.Caption = "CB" & DatePart("yyyy", txtDate.Value) _
+& "0" & DatePart("m", txtDate.Value) & "-0" & seqnum
+Else
+lbBillNoSeq.Caption = "CB" & DatePart("yyyy", txtDate.Value) _
+& DatePart("m", txtDate.Value) & "-0" & seqnum
+End If
+ElseIf Len(seqnum) = 3 Then
+If Len(DatePart("m", txtDate.Value)) = 1 Then
+lbBillNoSeq.Caption = "CB" & DatePart("yyyy", txtDate.Value) _
+& "0" & DatePart("m", txtDate.Value) & "-" & seqnum
+Else
+lbBillNoSeq.Caption = "CB" & DatePart("yyyy", txtDate.Value) _
+& DatePart("m", txtDate.Value) & "-" & seqnum
+End If
+End If
+End Sub
+
+Private Sub UserForm_Initialize()
+Dim seqnum As Variant
+Dim brow As Double
+'seqNum = (Range("B1048576").End(xlUp).Row) - 1
+'If Len(seqNum) = 1 Then
+'lbBillNoSeq.Caption = "A00000" & seqNum
+'End If
+'If Len(seqNum) = 2 Then
+'lbBillNoSeq.Caption = "A0000" & seqNum
+'End If
+'If Len(seqNum) = 3 Then
+'lbBillNoSeq.Caption = "A000" & seqNum
+'End If
+'If Len(seqNum) = 4 Then
+'lbBillNoSeq.Caption = "A00" & seqNum
+'End If
+'If Len(seqNum) = 5 Then
+'lbBillNoSeq.Caption = "A0" & seqNum
+'End If
+txtDate.Value = Date
+txtDescription.Value = "Daily Cash Sales"
+txtAmount.Value = ""
+txtDate.SetFocus
+cmdEdit.Enabled = False
+End Sub
+
+Private Sub UserForm_QueryClose(Cancel As Integer, CloseMode As Integer)
+If CloseMode = vbFormControlMenu Then
+Cancel = True
+MsgBox "Please use the cancel button!"
+End If
+End Sub
+
+Private Sub cmdCancel_Click()
+Range("A3").Select
+Unload Me
+End Sub
+
+Private Sub cmdClear_Click()
+Call UserForm_Initialize
+cmdPosting.Enabled = True
+cmdEdit.Enabled = False
+End Sub
+
+
+
+
+
+
 
