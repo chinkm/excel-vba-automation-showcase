@@ -36,7 +36,7 @@ Private Sub txtDate_AfterUpdate()
 
     Set ws = Worksheets("CashSalesBill")
     With Range("F3:F" & rowF)
-    Set fndCashBilDate = .Find(what:=DatePart("yyyy", txtDate) & DatePart("m", txtDate),       after:=ws.Range("F3"), _
+    Set fndCashBilDate = .Find(what:=DatePart("yyyy", txtDate) & DatePart("m", txtDate), after:=ws.Range("F3"), _
     LookIn:=xlValues, searchorder:=xlByRows, searchdirection:=xlNext, _
     MatchCase:=False)
     If fndCashBilDate Is Nothing Then
@@ -53,7 +53,7 @@ Private Sub txtDate_AfterUpdate()
     End If
     End With
     With Range("F3:F" & rowF)
-    Set fndCashBilNo = .Find(what:=DatePart("yyyy", txtDate) & DatePart("m", txtDate),         after:=ws.Range("F3"), _
+    Set fndCashBilNo = .Find(what:=DatePart("yyyy", txtDate) & DatePart("m", txtDate), after:=ws.Range("F3"), _
     LookIn:=xlValues, searchorder:=xlByRows, searchdirection:=xlNext, _
     MatchCase:=False)
     If Not fndCashBilNo Is Nothing Then
@@ -121,7 +121,7 @@ Private Sub cmdEdit_Click()
   ActiveCell.Offset(0, 1) = txtDescription.Value
   ActiveCell.Offset(0, 1).EntireColumn.AutoFit
   ActiveCell.Offset(0, 2) = txtAmount.Value
-  ActiveCell.Offset(0, 2).NumberFormat = "_(* #,##0.00_);_(* (#,##0.00);_(* ""-""??    _);_(@_)"
+  ActiveCell.Offset(0, 2).NumberFormat = "_(* #,##0.00_);_(* (#,##0.00);_(* ""-""??_);_(@_)"
   ActiveCell.Offset(0, 2).EntireColumn.AutoFit
   ActiveCell.Offset(0, 3).EntireRow.AutoFit
   ActiveCell.Offset(0, 3).EntireColumn.AutoFit
