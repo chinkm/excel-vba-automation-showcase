@@ -178,3 +178,6 @@ End Sub
 ```
 ### How to view the full code
 The full VBA module and UserForm logic are available in the /vba_code folder of this repository.
+
+🔗 [LinkedIn](https://www.linkedin.com/in/chin-kee-ming-588685148)
+💻 [GitHub](https://github.com/chinkm/excel-vba-automation-showcase)
