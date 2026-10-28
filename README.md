@@ -95,7 +95,7 @@ Private Sub txtDate_AfterUpdate()
     End If
 End Sub
 ```
-### Code Highlight: Automated Bill Number Generation
+### Code Highlight: Running Totals & Editing
 Before saving an edit, the script verifies the bill number exists, updates the row, and loops through the rows to recalculate the running total for that specific month.
 
 ```vba
